@@ -6,7 +6,7 @@
   
   
   vars:
-  	user: training
+    user: training
     node0: elephant
     node1: horse
     node2: monkey
@@ -68,9 +68,9 @@
 #        - sqoop
 #        - sqoop2
 #        - whirr 
-        - sqoop
-        - sqoop2
-        - whirr                         
+#        - sqoop
+#        - sqoop2
+#        - whirr                         
         
     - name: Config umask
       lineinfile:
@@ -90,6 +90,7 @@
 
     - name: Disable Iptable
       service: name=iptables enabled=no state=stopped
+      ignore_errors: yes
       
     - name: Set Swapiness to 1
       sysctl:

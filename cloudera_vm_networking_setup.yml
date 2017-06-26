@@ -5,7 +5,7 @@
   become: true
 
   vars:
-  	user: training
+    user: training
     hostname: lion
     gateway_address: 192.168.228.2
     ip_address: 192.168.228.24
