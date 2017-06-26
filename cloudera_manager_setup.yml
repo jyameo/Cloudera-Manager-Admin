@@ -1,0 +1,73 @@
+---
+
+- hosts: lion
+  connection: local
+  become: true
+
+  tasks:
+    - name: Run cdh_repository.yml
+      shell: ansible-playbook /root/playbooks/cdh_repository.yml
+      register: cdh_repository
+      
+    - name: Print cdh_repository.yml output
+      debug: var=cdh_repository.stdout_lines
+            
+    - name: Run update_yum_repos.yml
+      shell: ansible-playbook /root/playbooks/update_yum_repos.yml
+      register: update_yum_repos
+      
+    - name: Print update_yum_repos.yml output
+      debug: var=update_yum_repos.stdout_lines
+            
+    - name: Run java_jdk_setup.yml
+      shell: ansible-playbook /root/playbooks/java_jdk_setup.yml
+      register: java_jdk_setup
+      
+    - name: Print java_jdk_setup.yml output
+      debug: var=java_jdk_setup.stdout_lines
+
+############ COMMENT THIS BLOCK AFTER FIRST RUN ######################
+      
+    - name: Run mysql_setup.yml
+      shell: ansible-playbook /root/playbooks/mysql_setup.yml
+      register: mysql_setup
+      
+    - name: Print mysql_setup.yml output
+      debug: var=mysql_setup.stdout_lines
+      
+    - name: Run sqoop_mysql_setup.yml
+      shell: ansible-playbook /root/playbooks/sqoop_mysql_setup.yml
+      register: sqoop_mysql_setup
+      
+    - name: Print sqoop_mysql_setup.yml output
+      debug: var=sqoop_mysql_setup.stdout_lines
+      
+#########################################################################
+
+    - name: Run jdbc_driver_setup.yml
+      shell: ansible-playbook /root/playbooks/jdbc_driver_setup.yml
+      register: jdbc_driver_setup
+      
+    - name: Print jdbc_driver_setup.yml output
+      debug: var=jdbc_driver_setup.stdout_lines
+     
+    - name: Run add_sudo_user.yml
+      shell: ansible-playbook /root/playbooks/add_sudo_user.yml
+      register: sudo_user
+
+    - name: Print add_sudo_user.yml output
+      debug: var=sudo_user.stdout_lines  
+                   
+    - name: Run cm_server.yml
+      shell: ansible-playbook /root/playbooks/cm_server.yml
+      register: cm_server
+      
+    - name: Print cm_server.yml output
+      debug: var=cm_server.stdout_lines    
+
+    - name: Verify cloudera manager is running
+      shell: service cloudera-scm-server status
+      register: cm_server_status
+      
+    - name: Print cloudera manager status
+      debug: var=cm_server_status.stdout_lines   

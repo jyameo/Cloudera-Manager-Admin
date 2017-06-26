@@ -1,0 +1,96 @@
+---
+
+- hosts: lion
+  connection: local
+  become: true
+
+  vars:
+  	user: training
+    hostname: lion
+    gateway_address: 192.168.228.2
+    ip_address: 192.168.228.24
+    node0: elephant
+    node1: horse
+    node2: monkey
+    node3: tiger
+    node4: lion
+    ip_address_node0: 192.168.228.20
+    ip_address_node1: 192.168.228.21
+    ip_address_node2: 192.168.228.22
+    ip_address_node3: 192.168.228.23
+    ip_address_node4: 192.168.228.24
+
+  tasks:
+    - name: Install necessary packages
+      yum: name={{ item }} state=present update_cache=yes
+      with_items:
+        - epel-release
+        - nano
+        - wget
+        - perl
+        - java-1.7.0-openjdk
+
+    - name: Config Eth0 Network Adapdter
+      lineinfile:
+        path: /etc/sysconfig/network-scripts/ifcfg-eth0
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      with_items:
+        - { regexp: '^BOOTPROTO', line: 'BOOTPROTO=static' }
+        - { regexp: '^IPADDR', line: 'IPADDR={{ ip_address }}' }       
+        - { regexp: '^ONBOOT', line: 'ONBOOT=yes' }
+        - { regexp: '^NETMASK', line: 'NETMASK=255.255.255.0' }
+ 
+    - name: Stop Eth1 Network Adapter
+      command: ifconfig eth1 down
+      register: command_result
+      ignore_errors: True
+
+    - name: Remove persistent net rules
+      file:
+        path: '/etc/udev/rules.d/70-persistent-net.rules'
+        state: absent
+
+    - name: Add nameserver to resolv.conf
+      lineinfile:
+        path: /etc/resolv.conf
+        regexp: '^nameserver'
+        line: 'nameserver	{{ gateway_address }}'
+
+    - name: Config HOSTNAME & GATEWAY
+      lineinfile: 
+        path: /etc/sysconfig/network
+        regexp: '{{ item.regexp }}'
+        line: '{{ item.line }}'
+        state: present
+      with_items:
+        - { regexp: '^NETWORKING', line: 'NETWORKING=yes' }
+        - { regexp: '^GATEWAY', line: 'GATEWAY={{ gateway_address }}' }
+        - { regexp: '^HOSTNAME', line: 'HOSTNAME={{ hostname }}' }
+
+    - name: Add HOSTNAME to /etc/host
+      lineinfile:
+        path: /etc/hosts
+        regexp: '^{{ item.ip }}'
+        line: '{{ item.ip }}	{{ item.hostname }}'
+        state: present
+      with_items:
+        - { ip: '{{ ip_address_node0 }}', hostname: '{{ node0 }}' }
+        - { ip: '{{ ip_address_node1 }}', hostname: '{{ node1 }}' }
+        - { ip: '{{ ip_address_node2 }}', hostname: '{{ node2 }}' }
+        - { ip: '{{ ip_address_node3 }}', hostname: '{{ node3 }}' }
+        - { ip: '{{ ip_address_node4 }}', hostname: '{{ node4 }}' }
+     
+    - name: Edit Ansible hosts file
+      blockinfile:
+        path: /etc/ansible/hosts
+        regexp: '^\[hadoopCluster\]'
+        state: present
+        block: |
+          [hadoopCluster]
+          {{ node0 }} hostname={{ node0 }} user={{ user }}
+          {{ node1 }} hostname={{ node1 }} user={{ user }}
+          {{ node2 }} hostname={{ node2 }} user={{ user }}
+          {{ node3 }} hostname={{ node3 }} user={{ user }}
+          {{ node4 }} hostname={{ node4 }} user={{ user }}

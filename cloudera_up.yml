@@ -1,0 +1,21 @@
+---
+
+- hosts: lion
+  connection: local
+  become: true
+
+  tasks:
+    - name: Start Cloudera Manager Server service
+      service: name=cloudera-scm-server enabled=yes state=started
+      
+    - name: Start sshd service
+      service: name=sshd enabled=yes state=started
+      
+    - command: service cloudera-scm-server status
+      register: cloudera_status
+
+    - command: service sshd status
+      register: sshd_status
+
+    - debug: var=cloudera_status.stdout
+    - debug: var=sshd_status.stdout

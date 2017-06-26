@@ -1,0 +1,75 @@
+---
+
+- hosts: lion
+  connection: local
+  become: true
+
+  vars:
+    MYSQL_root_password: password
+    MYSQL_cloudera_password: password
+    cloudera_db_path: /root/playbooks/mysql-setup.sql
+
+  tasks:
+   
+    - name: Install MySQL packages
+      yum: name={{item}} state=present update_cache=yes
+      with_items:
+        - mysql-server
+        - MySQL-python
+     
+    - name: Start MySQL service
+      service: name=mysqld enabled=yes state=started   
+
+############# COMMENT THIS BLOCK AFTER FIRST RUN ########
+
+#    - name: Config password
+#      mysql_user:
+#        name: root
+#        password: '{{ MYSQL_root_password }}'
+#        priv: '*.*:ALL,GRANT'
+#        state: present
+
+######################################################
+        
+    - name: Create new user
+      mysql_user:
+        name: '{{ user }}'
+        password: '{{ user }}'
+        priv: '*.*:ALL,GRANT'
+        host: "{{ hostname }}"
+        state: present
+        check_implicit_admin: yes
+        login_user: root
+        login_password: '{{ MYSQL_root_password }}'
+
+    - name: Create necessary databases and users for Cloudera Manager
+      mysql_db:
+        state: import
+        name: all
+        target: "{{ cloudera_db_path }}"
+        login_user: root
+        login_password: '{{ MYSQL_root_password }}'
+        
+###################### Uncomment to delete all CM databases #########################        
+#    - name: Remove MYSQL database => {{ item }}
+#      mysql_db: 
+#        name: "{{ item }}"
+#        state: absent 
+#        collation: utf8_general_ci 
+#        encoding: utf8
+#        login_user: root
+#        login_password: '{{ MYSQL_root_password }}'
+#      with_items:
+#        - cmserver
+#        - metastore
+#        - amon
+#        - rman
+#        - oozie
+#        - hue
+
+######################################################################################
+
+    - name: Restart MySQL service
+      service: name=mysqld enabled=yes state=restarted
+    
+    

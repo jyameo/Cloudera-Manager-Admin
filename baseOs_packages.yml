@@ -1,0 +1,19 @@
+---
+
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    app_src: /usr/local/src
+    app_dest: /var/www/FlaskApp
+
+  tasks:
+    - name: Install necessary packages
+      yum: name={{ item }} state=present update_cache=yes
+      with_items:
+        - epel-release
+        - nano
+        - wget
+        - perl
+        - java-1.7.0-openjdk

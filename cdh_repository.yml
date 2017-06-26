@@ -1,0 +1,156 @@
+---
+
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    http_port: 80
+    hostname: lion
+    node0: elephant
+    node1: horse
+    node2: monkey
+    node3: tiger
+    node4: lion
+    cdh_repo_url: https://archive.cloudera.com/cdh5/redhat/6/x86_64/cdh/cloudera-cdh5.repo
+    cdh_rpm_repo_url: https://archive.cloudera.com/cdh5/redhat/6/x86_64/cdh/RPM-GPG-KEY-cloudera
+    cm_repo_url: https://archive.cloudera.com/cm5/redhat/6/x86_64/cm/cloudera-manager.repo
+    cm_rpm_repo_url: https://archive.cloudera.com/cm5/redhat/6/x86_64/cm/RPM-GPG-KEY-cloudera
+
+  tasks:
+    - name: Install necessary packages
+      yum: name={{ item }} state=present update_cache=yes
+      with_items:
+        - httpd 
+        - wget
+    
+    - name: Config httpd Server
+      lineinfile:
+        path: /etc/httpd/conf/httpd.conf
+        regexp: '{{ item. regexp }}'
+        line: '{{ item.line }}'
+        state: present
+      with_items:
+        - { regexp: '^Listen ', line: 'Listen {{ hostname }}:{{ http_port }}'}
+        - { regexp: '^ServerName ', line: 'ServerName {{ hostname }}:{{ http_port }}'}
+        - { regexp: '^NameVirtualHost ', line: 'NameVirtualHost {{ hostname }}:{{ http_port }}'}
+
+    - name: Create http directory for "{{ hostname }}"
+      file:
+        path: /var/www/{{ hostname }}
+        state: directory
+        mode: 0755
+    
+    - name: Config httpd - VirtualHost
+      blockinfile:
+        path: /etc/httpd/conf/httpd.conf
+        insertafter: '^</VirtualHost>'
+        state: present
+        block: |
+          <VirtualHost {{ hostname }}:{{ http_port }}>
+              ServerAdmin webmaster@{{ hostname }}
+              ServerName {{ hostname }}
+              DocumentRoot /var/www/{{ hostname }}
+              ErrorLog /var/log/httpd/error.log
+              CustomLog /var/log/httpd/access.log combined
+          </VirtualHost>
+          
+    - name: Restart HTTPD service 
+      service:
+        name: httpd
+        state: restarted
+       
+    - name: Install yum-utils createrepo
+      command: yum install -y yum-utils createrepo
+
+
+
+      
+    - name: Remove old CDH5 repository
+      file:
+        path: /etc/yum.repos.d/cloudera-cdh5.repo
+        state: absent
+        
+    - name: Clean up cache
+      command: rm -fr /var/cache/yum/ && yum clean all
+             
+    - name: Config CDH5 repository
+      get_url:
+        url: "{{ cdh_repo_url }}"
+        dest: /etc/yum.repos.d/
+        mode: 0755
+      
+    - name: Download CDH5 repository
+      command: reposync -r cloudera-cdh5 -p /var/www/{{ hostname }}/cdh/5
+
+    - name: Download CDH5 RPM-GPG-KEY-cloudera repository
+      get_url:
+        url: "{{ cdh_rpm_repo_url }}"
+        dest: /var/www/{{ hostname }}/cdh
+        mode: 0755
+        
+    - name: Create soft link for CDH5 repo
+      file:
+        src: /var/www/{{ hostname }}/cdh/5/cloudera-cdh5/RPMS
+        dest: /var/www/{{ hostname }}/cdh/5/RPMS
+        state: link      
+ 
+    - name: Create CDH5 repository
+      command: createrepo /var/www/{{ hostname }}/cdh/5/
+ 
+ 
+ 
+      
+    - name: Remove old CM5 repository
+      file:
+        path: /etc/yum.repos.d/cloudera-manager.repo
+        state: absent
+        
+    - name: Clean up cache
+      command: rm -fr /var/cache/yum/ && yum clean all
+                           
+    - name: Config CM5 repository
+      get_url:
+        url: "{{ cm_repo_url }}"
+        dest: /etc/yum.repos.d/
+        mode: 0755
+             
+    - name: Download CM5 repository
+      command: reposync -r cloudera-manager -p /var/www/{{ hostname }}/cm/5
+      
+    - name: Download CM5 RPM-GPG-KEY-cloudera repository
+      get_url:
+        url: "{{ cm_rpm_repo_url }}"
+        dest: /var/www/{{ hostname }}/cm
+        mode: 0755
+      
+    - name: Create soft link for CM5 repo
+      file:
+        src: /var/www/{{ hostname }}/cm/5/cloudera-manager/RPMS
+        dest: /var/www/{{ hostname }}/cm/5/RPMS
+        state: link
+      
+    - name: Create CM5 repository
+      command: createrepo /var/www/{{ hostname }}/cm/5/
+
+
+      
+    - name: Change baseurl to local for CDH5 and CM5
+      lineinfile:
+        path: /etc/yum.repos.d/{{ item.repo }}.repo
+        regexp: '{{ item.regexp }}'
+        line: "{{ item.line }}"
+      with_items:
+        - { regexp: '^baseurl', repo: 'cloudera-cdh5', line: 'baseurl=http://{{ hostname }}/cdh/5' }
+        - { regexp: '^gpgkey', repo: 'cloudera-cdh5', line: 'gpgkey=http://{{ hostname }}/cdh/RPM-GPG-KEY-cloudera' }
+        - { regexp: '^baseurl', repo: 'cloudera-manager', line: 'baseurl=http://{{ hostname }}/cm/5' }
+        - { regexp: '^gpgkey', repo: 'cloudera-manager', line: 'gpgkey=http://{{ hostname }}/cm/RPM-GPG-KEY-cloudera' }
+
+    - name: Copy CDH5 repo to all nodes
+      command: scp -r -o StrictHostKeyChecking=no /etc/yum.repos.d/cloudera-cdh5.repo root@{{ item.hostname }}:/etc/yum.repos.d/
+      with_items:
+        - { hostname: '{{ node0 }}' }
+        - { hostname: '{{ node1 }}' }
+        - { hostname: '{{ node2 }}' }
+        - { hostname: '{{ node3 }}' }
+

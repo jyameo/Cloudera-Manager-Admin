@@ -1,0 +1,24 @@
+---
+
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    app_src: /media
+    app_dest: /tmp
+
+  tasks:
+    - name: Mount VMwareTools CD ROM
+      mount: path={{ app_src }} src=/dev/sr0 state=mounted fstype=iso9660
+
+    - name: Uncompress vmware-tools files into /tmp
+      unarchive:
+        src: "{{ app_src }}/VMwareTools-10.1.6-5214329.tar.gz"
+        dest: "{{ app_dest }}"
+
+    - name: Install VMwareTools
+      command: "{{ app_dest }}/vmware-tools-distrib/vmware-install.pl -d"   
+
+    - name: Unmount CD ROM
+      command: umount {{ app_src }}

@@ -1,0 +1,38 @@
+---
+
+- hosts: hadoopCluster
+  connection: ssh
+  become: true
+
+  vars:
+    mysql_repo_url: http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm
+
+  tasks: 
+    - name: Install java jdk
+      yum: name=oracle-j2sdk1.7 state=present update_cache=yes
+        
+    - name: Config JAVA_HOME
+      lineinfile:
+        path: /etc/profile
+        regexp: '^export JAVA_HOME'
+        line: 'export JAVA_HOME=/usr/java/jdk1.7.0_67-cloudera'
+        state: present
+        
+    - name: Config 'hdfs' user 
+      lineinfile:
+        path: /etc/profile
+        regexp: '^export HADOOP_USER_NAME'
+        line: 'export HADOOP_USER_NAME=hdfs'
+        state: present
+        
+    - name: Reload global profile settings
+      shell: source /etc/profile && echo $JAVA_HOME
+      register: java_home
+            
+    - name: Print JAVA_HOME
+      debug: var=java_home.stdout
+      
+      
+
+      
+       

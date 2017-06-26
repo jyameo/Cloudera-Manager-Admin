@@ -1,0 +1,21 @@
+---
+
+- hosts: localhost
+  connection: local
+  become: true
+
+  tasks:   
+    - name: Install Cloudera daemons and server packages
+      yum: name={{item}} state=present update_cache=yes
+      with_items:
+        - cloudera-manager-daemons
+        - cloudera-manager-server
+        
+    - name: Disable start on boot of Cloudera Manager
+      command: chkconfig cloudera-scm-server off
+      
+    - name: Run scm_prepare_database script
+      shell: /usr/share/cmf/schema/scm_prepare_database.sh mysql cmserver cmserveruser password
+  
+    - name: Start Cloudera Manager Server
+      service: name=cloudera-scm-server state=started

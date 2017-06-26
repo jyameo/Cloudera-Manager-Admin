@@ -1,0 +1,25 @@
+---
+
+- hosts: hadoopCluster
+  connection: ssh
+  become: true
+
+  vars:
+    user: training
+    group: wheel
+
+  tasks:
+    - name: Make sure we have a group {{ group }}
+      group:
+        name: '{{ group }}'
+        state: present
+
+    - name: Allow group to have passwordless sudo
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%{{ group }}'
+        line: '%{{ group }} ALL=(ALL) NOPASSWD: ALL'
+
+    - name: Add sudoer user to wheel group
+      user: name={{ user }} groups={{ group }} append=yes state=present createhome=yes

@@ -1,0 +1,12 @@
+---
+
+- hosts: hadoopCluster
+  connection: local
+  become: true
+
+  tasks:
+    - name: Switch to new user
+      shell: echo '{{ user }}'
+      register: echo
+      
+    - debug: var=echo.stdout_lines

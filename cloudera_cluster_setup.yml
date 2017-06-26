@@ -1,0 +1,108 @@
+---
+
+- hosts: hadoopCluster
+  connection: ssh
+  become: true
+
+  tasks:
+    - name: Clean up cache
+      shell: yum clean all
+      
+    - name: Install necessary packages
+      yum: name={{ item }} state=present update_cache=yes
+      with_items:
+        - ntp
+        - libselinux-python
+        - nscd
+#        - avro-doc
+#        - avro-tools
+#        - crunch
+#        - flume-ng
+#        - bigtop-utils
+#        - bigtop-jsvc
+#        - bigtop-tomcat
+#        - hadoop
+#        - hadoop-hdfs-fuse
+#        - hadoop-hdfs-nfs3
+#        - hadoop-httpfs
+#        - hadoop-kms
+#        - hbase-solr
+#        - hive-hbase
+#        - hive-webhcat
+#        - hue-beeswax
+#        - hue-hbase
+#        - hue-impala
+#        - hue-pig
+#        - hue-plugins
+#        - hue-rdbms
+#        - hue-search
+#        - hue-spark
+#        - hue-sqoop
+#        - hue-zookeeper
+#        - impala
+#        - impala-shell
+#        - kite
+#        - llama
+#        - mahout
+#        - oozie
+#        - pig
+#        - pig-udf-datafu
+#        - search
+#        - sentry
+#        - sentry-hdfs-plugin
+#        - solr-mapreduce
+#        - solr-doc
+#        - solr-crunch
+#        - hbase-solr-doc
+#        - spark-python
+#        - sqoop
+#        - sqoop2
+#        - whirr 
+        - sqoop
+        - sqoop2
+        - whirr                         
+        
+    - name: Config umask
+      lineinfile:
+        path: /root/.bashrc
+        regexp: '^umask '
+        line: 'umask 022'
+        state: present
+        
+    - name: Source bash_rc
+      shell: source /root/.bashrc
+              
+    - name: Start NTP service
+      service: name=ntpd enabled=yes state=started
+
+    - name: Disable SELinux      
+      selinux: state=disabled
+
+    - name: Disable Iptable
+      service: name=iptables enabled=no state=stopped
+      
+    - name: Set Swapiness to 1
+      sysctl:
+        name: vm.swappiness
+        value: 1
+        state: present
+        
+    - name: Start NSCD service
+      service: name=nscd enabled=yes state=started
+        
+    - name: Config NSCD service
+      command: chkconfig --level 345 nscd on
+    
+    - name: Set File Handle Limits
+      pam_limits:
+        domain: '{{ item.domain }}'
+        limit_type: hard
+        limit_item: '{{ item.item }}'
+        value: 32768
+      with_items:
+        - { domain: '^hdfs', item: 'nofile' }
+        - { domain: '^hdfs', item: 'nproc' }
+        - { domain: '^mapred', item: 'nofile' }
+        - { domain: '^mapred', item: 'nproc' }
+        - { domain: '^hbase', item: 'nofile' }
+        - { domain: '^hbase', item: 'nproc' }

@@ -1,0 +1,33 @@
+---
+
+- hosts: hadoopCluster
+  connection: ssh
+  become: true
+
+  vars:
+    MYSQL_connector_version: 5.1.42
+    jdbc_driver_url: https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-{{ MYSQL_connector_version }}.tar.gz
+
+  tasks:
+    - name: Download JDBC driver
+      get_url:
+        url: "{{ jdbc_driver_url }}"
+        dest: /root
+        mode: 0755
+
+    - name: Unarchive JDBC driver package
+      unarchive:
+        src: '{{ jdbc_driver_url }}'
+        dest: /root   
+        remote_src: True  
+        
+    - name: Copy JDBC driver into /usr/share/java
+      copy:
+        src: /root/mysql-connector-java-{{ MYSQL_connector_version }}/mysql-connector-java-{{ MYSQL_connector_version }}-bin.jar
+        dest: /usr/share/java/mysql-connector-java.jar
+        
+    - name: Create soft link for JDBC driver repo
+      file:
+        src: /usr/share/java/mysql-connector-java.jar
+        dest: /usr/lib/sqoop/mysql-connector-java.jar
+        state: link 

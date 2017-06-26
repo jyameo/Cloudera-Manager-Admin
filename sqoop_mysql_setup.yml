@@ -1,0 +1,56 @@
+---
+
+- hosts: elephant
+  connection: ssh
+  become: true
+
+  vars:
+    database: movielens
+    data_path: /home/training/training_materials/admin/data/movielens.sql
+    MYSQL_root_password: password
+    MYSQL_cloudera_password: password
+
+  tasks:
+   
+    - name: Install MySQL packages
+      yum: name={{item}} state=present update_cache=yes
+      with_items:
+        - mysql-server
+        - MySQL-python
+     
+    - name: Start MySQL service
+      service: name=mysqld enabled=yes state=started   
+
+############# COMMENT THIS BLOCK AFTER FIRST RUN ########
+
+#    - name: Config password
+#      mysql_user:
+#        name: root
+#        password: '{{ MYSQL_root_password }}'
+#        priv: '*.*:ALL,GRANT'
+#        state: present
+
+######################################################
+        
+    - name: Create new user and GRANT on Database
+      mysql_user:
+        name: "{{ user }}"
+        password: '{{ user }}'
+        host: '{{ hostname }}'
+        priv: '*.*:ALL,GRANT'
+        state: present
+        login_user: root
+        login_password: '{{ MYSQL_root_password }}'
+        
+    - name: Import data into mysql
+      mysql_db:
+        state: import
+        name: all
+        target: '{{ data_path }}'
+        login_user: root
+        login_password: '{{ MYSQL_root_password }}'
+
+    - name: Restart MySQL service
+      service: name=mysqld enabled=yes state=restarted
+    
+    

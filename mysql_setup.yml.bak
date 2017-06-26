@@ -1,0 +1,86 @@
+---
+
+- hosts: localhost
+  connection: local
+  become: true
+
+  vars:
+    MYSQL_root_password: password
+    MYSQL_cloudera_password: password
+    MYSQL_connector_version: 5.1.42
+    jdbc_driver_url: https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-{{ MYSQL_connector_version }}.tar.gz
+
+  tasks:
+   
+    - name: Install MySQL packages
+      yum: name={{item}} state=present update_cache=yes
+      with_items:
+        - mysql-server
+        - MySQL-python
+     
+    - name: Start MySQL service
+      service: name=mysqld enabled=yes state=started   
+
+# COMMENT THIS BLOCK AFTER FIRST RUN
+    - name: Create Root password
+      mysql_user:
+        name: root
+        password: '{{ MYSQL_root_password }}'
+        priv: '*.*:ALL,GRANT'
+        state: present
+        
+    - name: Create CDH databases
+      mysql_db: 
+        name: '{{ item }}'
+        state: present 
+        collation: utf8_general_ci 
+        encoding: utf8
+        login_user: root
+        login_password: '{{ MYSQL_root_password }}'
+      with_items:
+        - cmserver
+        - metastore
+        - amon
+        - rman
+        - oozie
+        - hue
+
+    - name: Create CDH users and GRANT ALL
+      mysql_user:
+        name: '{{ item.user }}'
+        password: '{{ MYSQL_cloudera_password }}'
+        priv: '{{ item.db }}.*:ALL,GRANT'
+        state: present
+        check_implicit_admin: yes
+        login_user: root
+        login_password: '{{ MYSQL_root_password }}'
+        host: '{{ hostname }}'
+      with_items:
+        - { db: cmserver, user: cmserveruser }
+        - { db: metastore, user: hiveuser }
+        - { db: amon, user: amonuser }
+        - { db: rman, user: rmanuser }
+        - { db: oozie, user: oozieuser }
+        - { db: hue, user: hueuser }
+
+    - name: Download JDBC driver
+      get_url:
+        url: "{{ jdbc_driver_url }}"
+        dest: /root
+        mode: 0755
+
+    - name: Unarchive JDBC driver package
+      unarchive:
+        src: '{{ jdbc_driver_url }}'
+        dest: /root   
+        remote_src: True  
+        
+    - name: Copy JDBC driver into /usr/share/java
+      copy:
+        src: /root/mysql-connector-java-{{ MYSQL_connector_version }}/mysql-connector-java-{{ MYSQL_connector_version }}-bin.jar
+        dest: /usr/share/java/mysql-connector-java.jar
+
+    - name: Restart MySQL service
+      service: name=mysqld enabled=yes state=restarted
+    
+    

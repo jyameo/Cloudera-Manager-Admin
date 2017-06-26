@@ -1,0 +1,22 @@
+---
+
+- hosts: hadoopCluster
+  connection: ssh
+  become: true
+
+
+  tasks:
+    - name: Copy CDH5 repo to all nodes
+      command: scp -r -o StrictHostKeyChecking=no /etc/yum.repos.d/cloudera-cdh5.repo root@{{ item.hostname }}:/etc/yum.repos.d/
+      with_items:
+        - { hostname: '{{ node0 }}' }
+        - { hostname: '{{ node1 }}' }
+        - { hostname: '{{ node2 }}' }
+        - { hostname: '{{ node3 }}' }
+        
+    - name: Update yum packages in all nodes
+      yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+        
