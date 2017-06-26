@@ -3,7 +3,17 @@
 - hosts: hadoopCluster
   connection: ssh
   become: true
-
+  
+  
+  vars:
+  	user: training
+    node0: elephant
+    node1: horse
+    node2: monkey
+    node3: tiger
+    node4: lion
+    
+    
   tasks:
     - name: Clean up cache
       shell: yum clean all
@@ -106,3 +116,16 @@
         - { domain: '^mapred', item: 'nproc' }
         - { domain: '^hbase', item: 'nofile' }
         - { domain: '^hbase', item: 'nproc' }
+              
+    - name: Edit Ansible hosts file
+      blockinfile:
+        path: /etc/ansible/hosts
+        regexp: '^\[hadoopCluster\]'
+        state: present
+        block: |
+          [hadoopCluster]
+          {{ node0 }} hostname={{ node0 }} user={{ user }}
+          {{ node1 }} hostname={{ node1 }} user={{ user }}
+          {{ node2 }} hostname={{ node2 }} user={{ user }}
+          {{ node3 }} hostname={{ node3 }} user={{ user }}
+          {{ node4 }} hostname={{ node4 }} user={{ user }}
