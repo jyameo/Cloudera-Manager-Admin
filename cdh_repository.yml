@@ -147,7 +147,7 @@
         - { regexp: '^gpgkey', repo: 'cloudera-manager', line: 'gpgkey=http://{{ hostname }}/cm/RPM-GPG-KEY-cloudera' }
 
     - name: Copy CDH5 repo to all nodes
-      command: scp -r -o StrictHostKeyChecking=no /etc/yum.repos.d/cloudera-cdh5.repo root@{{ item.hostname }}:/etc/yum.repos.d/
+      command: scp -r -o StrictHostKeyChecking=no /etc/yum.repos.d/cloudera-cdh5.repo {{ item.hostname }}:/etc/yum.repos.d/
       with_items:
         - { hostname: '{{ node0 }}' }
         - { hostname: '{{ node1 }}' }

@@ -7,18 +7,18 @@
   vars:
     MYSQL_root_password: password
     MYSQL_cloudera_password: password
-    cloudera_db_path: /root/playbooks/mysql-setup.sql
+    cloudera_db_path: /home/jessy_yameogo/Cloudera-Manager-Admin/mysql-setup.sql
 
   tasks:
    
     - name: Install MySQL packages
       yum: name={{item}} state=present update_cache=yes
       with_items:
-        - mysql-server
+        - mariadb-server
         - MySQL-python
      
     - name: Start MySQL service
-      service: name=mysqld enabled=yes state=started   
+      service: name=mariadb enabled=yes state=started   
 
 ############# COMMENT THIS BLOCK AFTER FIRST RUN ########
 
@@ -70,6 +70,6 @@
 ######################################################################################
 
     - name: Restart MySQL service
-      service: name=mysqld enabled=yes state=restarted
+      service: name=mariadb enabled=yes state=restarted
     
     
