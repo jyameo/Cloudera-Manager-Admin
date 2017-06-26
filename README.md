@@ -1,1 +1,1 @@
-# Cloudera-Manager-Admin
+# Cloudera-Manager-Administration
