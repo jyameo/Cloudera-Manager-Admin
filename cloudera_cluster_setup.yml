@@ -24,6 +24,7 @@
         - ntp
         - libselinux-python
         - nscd
+	- ansible
 #        - avro-doc
 #        - avro-tools
 #        - crunch
