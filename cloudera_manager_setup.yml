@@ -5,19 +5,19 @@
   become: true
 
   tasks:
-#    - name: Run cdh_repository.yml
-#      shell: ansible-playbook /home/jessy_yameogo/Cloudera-Manager-Admin/cdh_repository.yml
-#      register: cdh_repository
-      
-#    - name: Print cdh_repository.yml output
-#      debug: var=cdh_repository.stdout_lines
+    - name: Run cdh_repository.yml
+      shell: ansible-playbook /home/jessy_yameogo/Cloudera-Manager-Admin/cdh_repository.yml
+      register: cdh_repository
+     
+    - name: Print cdh_repository.yml output
+      debug: var=cdh_repository.stdout_lines
             
-#    - name: Run update_yum_repos.yml
-#      shell: ansible-playbook /home/jessy_yameogo/Cloudera-Manager-Admin/update_yum_repos.yml
-#      register: update_yum_repos
+    - name: Run update_yum_repos.yml
+      shell: ansible-playbook /home/jessy_yameogo/Cloudera-Manager-Admin/update_yum_repos.yml
+      register: update_yum_repos
       
-#    - name: Print update_yum_repos.yml output
-#      debug: var=update_yum_repos.stdout_lines
+    - name: Print update_yum_repos.yml output
+      debug: var=update_yum_repos.stdout_lines
             
     - name: Run java_jdk_setup.yml
       shell: ansible-playbook /home/jessy_yameogo/Cloudera-Manager-Admin/java_jdk_setup.yml
