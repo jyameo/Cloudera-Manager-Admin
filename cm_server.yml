@@ -15,7 +15,7 @@
       command: chkconfig cloudera-scm-server off
       
     - name: Run scm_prepare_database script
-      shell: /usr/share/cmf/schema/scm_prepare_database.sh mysql cmserver cmserveruser password
+      shell: /usr/share/cmf/schema/scm_prepare_database.sh mysql cmserver root password
   
     - name: Start Cloudera Manager Server
       service: name=cloudera-scm-server state=started

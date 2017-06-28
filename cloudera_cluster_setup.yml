@@ -1,7 +1,7 @@
 ---
 
-- hosts: lion
-  connection: local
+- hosts: hadoopCluster
+  connection: ssh
   become: true
    
   vars:
@@ -29,6 +29,7 @@
         - libselinux-python
         - nscd
         - ansible
+        - git
 
     - name: Permit SSH root login
       lineinfile:
@@ -60,7 +61,7 @@
         line: 'umask 022'
         state: present
         
-    - name: Source bash_rc
+    - name: Source bashrc
       shell: source /root/.bashrc
               
     - name: Start NTP service
@@ -69,8 +70,8 @@
     - name: Disable SELinux      
       selinux: state=disabled
 
-    - name: Disable Firewalld
-      service: name=firewalld enabled=no state=stopped
+    - name: Disable Iptables
+      service: name=iptables enabled=no state=stopped
       
     - name: Set Swapiness to 1
       sysctl:
@@ -97,7 +98,17 @@
         - { domain: '^mapred', item: 'nproc' }
         - { domain: '^hbase', item: 'nofile' }
         - { domain: '^hbase', item: 'nproc' }
+
+    - name: Config 'hdfs' user
+      lineinfile:
+        path: /etc/profile
+        regexp: '^export HADOOP_USER_NAME'
+        line: 'export HADOOP_USER_NAME=hdfs'
+        state: present
               
+    - name: Source /etc/profile
+      shell: source /etc/profile
+
     - name: Edit Ansible hosts file
       blockinfile:
         path: /etc/ansible/hosts

@@ -6,7 +6,7 @@
 
   vars:
     database: movielens
-    data_path: /home/training/training_materials/admin/data/movielens.sql
+    data_path: /root/Cloudera-Manager-Admin/movielens.sql
     MYSQL_root_password: password
     MYSQL_cloudera_password: password
 
@@ -15,20 +15,20 @@
     - name: Install MySQL packages
       yum: name={{item}} state=present update_cache=yes
       with_items:
-        - mariadb-server
+        - mysql-server
         - MySQL-python
      
     - name: Start MySQL service
-      service: name=mariadb enabled=yes state=started   
+      service: name=mysqld enabled=yes state=started   
 
 ############# COMMENT THIS BLOCK AFTER FIRST RUN ########
 
-    - name: Config password
-      mysql_user:
-        name: root
-        password: '{{ MYSQL_root_password }}'
-        priv: '*.*:ALL,GRANT'
-        state: present
+#    - name: Config password
+#      mysql_user:
+#        name: root
+#        password: '{{ MYSQL_root_password }}'
+#        priv: '*.*:ALL,GRANT'
+#        state: present
 
 ######################################################
         
@@ -51,6 +51,6 @@
         login_password: '{{ MYSQL_root_password }}'
 
     - name: Restart MySQL service
-      service: name=mariadb enabled=yes state=restarted
+      service: name=mysqld enabled=yes state=restarted
     
     

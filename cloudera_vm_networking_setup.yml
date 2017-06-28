@@ -13,6 +13,11 @@
     node4: lion
 
   tasks:
+    - name: Install necessary packages
+      yum: name={{ item }} state=present update_cache=yes
+      with_items:
+        - libselinux-python
+
     - name: Edit Ansible hosts file
       blockinfile:
         path: /etc/ansible/hosts

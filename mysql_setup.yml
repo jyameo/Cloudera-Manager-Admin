@@ -7,18 +7,18 @@
   vars:
     MYSQL_root_password: password
     MYSQL_cloudera_password: password
-    cloudera_db_path: /home/jessy_yameogo/Cloudera-Manager-Admin/mysql-setup.sql
+    cloudera_db_path: /root/Cloudera-Manager-Admin/mysql-setup.sql
 
   tasks:
    
     - name: Install MySQL packages
       yum: name={{item}} state=present update_cache=yes
       with_items:
-        - mariadb-server
+        - mysql-server
         - MySQL-python
      
     - name: Start MySQL service
-      service: name=mariadb enabled=yes state=started   
+      service: name=mysqld enabled=yes state=started   
 
 ############# COMMENT THIS BLOCK AFTER FIRST RUN ########
 
@@ -49,7 +49,7 @@
         target: "{{ cloudera_db_path }}"
         login_user: root
         login_password: '{{ MYSQL_root_password }}'
-        
+      ignore_errors: yes        
 ###################### Uncomment to delete all CM databases #########################        
 #    - name: Remove MYSQL database => {{ item }}
 #      mysql_db: 
@@ -70,6 +70,6 @@
 ######################################################################################
 
     - name: Restart MySQL service
-      service: name=mariadb enabled=yes state=restarted
+      service: name=mysqld enabled=yes state=restarted
     
     

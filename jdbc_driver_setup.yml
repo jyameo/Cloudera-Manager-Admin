@@ -9,6 +9,11 @@
     jdbc_driver_url: https://dev.mysql.com/get/Downloads/Connector-J/mysql-connector-java-{{ MYSQL_connector_version }}.tar.gz
 
   tasks:
+    - name: Install necessary packages
+      yum: name={{ item }} state=present update_cache=yes
+      with_items:
+        - sqoop
+
     - name: Download JDBC driver
       get_url:
         url: "{{ jdbc_driver_url }}"
