@@ -1,10 +1,9 @@
 ---
 
-- hosts: hadoopCluster
-  connection: ssh
+- hosts: lion
+  connection: local
   become: true
-  
-  
+   
   vars:
     user: training
     node0: elephant
@@ -12,7 +11,7 @@
     node2: monkey
     node3: tiger
     node4: lion
-    
+    epel_repo: http://dl.fedoraproject.org/pub/archive/epel/5/i386//epel-release-5-4.noarch.rpm
     
   tasks:
     - name: Clean up cache
@@ -21,58 +20,34 @@
     - name: Install necessary packages
       yum: name={{ item }} state=present update_cache=yes
       with_items:
+        - epel-release
+        - nano
+        - wget
+        - perl
+        - java-1.7.0-openjdk
         - ntp
         - libselinux-python
         - nscd
-	- ansible
-#        - avro-doc
-#        - avro-tools
-#        - crunch
-#        - flume-ng
-#        - bigtop-utils
-#        - bigtop-jsvc
-#        - bigtop-tomcat
-#        - hadoop
-#        - hadoop-hdfs-fuse
-#        - hadoop-hdfs-nfs3
-#        - hadoop-httpfs
-#        - hadoop-kms
-#        - hbase-solr
-#        - hive-hbase
-#        - hive-webhcat
-#        - hue-beeswax
-#        - hue-hbase
-#        - hue-impala
-#        - hue-pig
-#        - hue-plugins
-#        - hue-rdbms
-#        - hue-search
-#        - hue-spark
-#        - hue-sqoop
-#        - hue-zookeeper
-#        - impala
-#        - impala-shell
-#        - kite
-#        - llama
-#        - mahout
-#        - oozie
-#        - pig
-#        - pig-udf-datafu
-#        - search
-#        - sentry
-#        - sentry-hdfs-plugin
-#        - solr-mapreduce
-#        - solr-doc
-#        - solr-crunch
-#        - hbase-solr-doc
-#        - spark-python
-#        - sqoop
-#        - sqoop2
-#        - whirr 
-#        - sqoop
-#        - sqoop2
-#        - whirr       
+        - ansible
 
+    - name: Permit SSH root login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PermitRootLogin'
+        line: 'PermitRootLogin yes'
+        
+    - name: Permit SSH root login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication'
+        line: 'PasswordAuthentication yes'        
+
+    - name: Permit SSH root login
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^ChallengeResponseAuthentication'
+        line: 'ChallengeResponseAuthentication yes'    
+        
     - name: Remove persistent net rules
       file:
         path: '/etc/udev/rules.d/70-persistent-net.rules'
@@ -94,9 +69,8 @@
     - name: Disable SELinux      
       selinux: state=disabled
 
-    - name: Disable Iptable
-      service: name=iptables enabled=no state=stopped
-      ignore_errors: yes
+    - name: Disable Firewalld
+      service: name=firewalld enabled=no state=stopped
       
     - name: Set Swapiness to 1
       sysctl:
