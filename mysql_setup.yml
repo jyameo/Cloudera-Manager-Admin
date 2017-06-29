@@ -22,12 +22,12 @@
 
 ############# COMMENT THIS BLOCK AFTER FIRST RUN ########
 
-#    - name: Config password
-#      mysql_user:
-#        name: root
-#        password: '{{ MYSQL_root_password }}'
-#        priv: '*.*:ALL,GRANT'
-#        state: present
+    - name: Config password
+      mysql_user:
+        name: root
+        password: '{{ MYSQL_root_password }}'
+        priv: '*.*:ALL,GRANT'
+        state: present
 
 ######################################################
         

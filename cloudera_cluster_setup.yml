@@ -31,24 +31,19 @@
         - ansible
         - git
 
-    - name: Permit SSH root login
+    - name: Config SSH
       lineinfile:
         path: /etc/ssh/sshd_config
-        regexp: '^PermitRootLogin'
-        line: 'PermitRootLogin yes'
-        
-    - name: Permit SSH root login
-      lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: '^PasswordAuthentication'
-        line: 'PasswordAuthentication yes'        
+        regexp: '{{ item.regexp }}'
+        line: '{{ item.line }}'
+      with_items:
+        - { regexp: '^PermitRootLogin', line: 'PermitRootLogin yes' }
+        - { regexp: '^PasswordAuthentication', line: 'PasswordAuthentication yes' } 
+        - { regexp: '^ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication yes' }
+        - { regexp: '^#RSAAuthentication', line: 'RSAAuthentication yes' }
+        - { regexp: '^#PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+        - { regexp: '^#AuthorizedKeysFile', line: 'AuthorizedKeysFile .ssh/authorized_keys' }  
 
-    - name: Permit SSH root login
-      lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: '^ChallengeResponseAuthentication'
-        line: 'ChallengeResponseAuthentication yes'    
-        
     - name: Remove persistent net rules
       file:
         path: '/etc/udev/rules.d/70-persistent-net.rules'
@@ -121,3 +116,7 @@
           {{ node2 }} hostname={{ node2 }} user={{ user }}
           {{ node3 }} hostname={{ node3 }} user={{ user }}
           {{ node4 }} hostname={{ node4 }} user={{ user }}
+
+    - name: Restart SSHD service
+      service: name=sshd enabled=yes state=restarted
+
