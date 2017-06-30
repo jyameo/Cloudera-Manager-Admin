@@ -1,0 +1,28 @@
+---
+
+- hosts: localhost
+  connection: local
+  become: true  
+  
+  tasks:      
+    - name: Install necessary packages
+      yum: name={{ item }} state=present update_cache=yes
+      with_items:
+        - libselinux-python
+
+    - name: Config SSH
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '{{ item.regexp }}'
+        line: '{{ item.line }}'
+      with_items:
+        - { regexp: '^PermitRootLogin', line: 'PermitRootLogin yes' }
+        - { regexp: '^PasswordAuthentication', line: 'PasswordAuthentication yes' } 
+        - { regexp: '^ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication yes' }
+        - { regexp: '^#RSAAuthentication', line: 'RSAAuthentication yes' }
+        - { regexp: '^#PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
+        - { regexp: '^#AuthorizedKeysFile', line: 'AuthorizedKeysFile .ssh/authorized_keys' }  
+
+    - name: Restart SSHD service
+      service: name=sshd enabled=yes state=restarted
+

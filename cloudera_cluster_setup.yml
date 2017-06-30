@@ -11,7 +11,6 @@
     node2: monkey
     node3: tiger
     node4: lion
-    epel_repo: http://dl.fedoraproject.org/pub/archive/epel/5/i386//epel-release-5-4.noarch.rpm
     
   tasks:
     - name: Clean up cache
@@ -30,19 +29,6 @@
         - nscd
         - ansible
         - git
-
-    - name: Config SSH
-      lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: '{{ item.regexp }}'
-        line: '{{ item.line }}'
-      with_items:
-        - { regexp: '^PermitRootLogin', line: 'PermitRootLogin yes' }
-        - { regexp: '^PasswordAuthentication', line: 'PasswordAuthentication yes' } 
-        - { regexp: '^ChallengeResponseAuthentication', line: 'ChallengeResponseAuthentication yes' }
-        - { regexp: '^#RSAAuthentication', line: 'RSAAuthentication yes' }
-        - { regexp: '^#PubkeyAuthentication', line: 'PubkeyAuthentication yes' }
-        - { regexp: '^#AuthorizedKeysFile', line: 'AuthorizedKeysFile .ssh/authorized_keys' }  
 
     - name: Remove persistent net rules
       file:
